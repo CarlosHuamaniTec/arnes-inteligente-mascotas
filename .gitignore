@@ -172,3 +172,45 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# React.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.local
+.env.development.local
+.env.test.local
+.DS_Store
+Thumbs.db
+
+# Android (Kotlin / Jetpack Compose)
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/modules.xml
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# ESP32 / Arduino
+*.tmp
+*.elf
+*.hex
+*.bin
+*.o
+*.d
+*.partitions.bin
+bootloader/
+build/
+
+# VSCode
+.vscode/
+*.vscode*
+
+# Temp Files
+*~
+Thumbs.db
+.DS_Store
