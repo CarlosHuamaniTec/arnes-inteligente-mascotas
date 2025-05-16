@@ -13,24 +13,3 @@ Python 3.13.2
 Django 5.2.1
 Django REST Framework
 Pillow
-
-# Estructura del proyecto
-backend/
-├── manage.py
-├── vitalpawdj/              # Configuración general del proyecto
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── usuarios/                # App para gestión de usuarios
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   └── urls.py
-├── mascotas/                # App para gestión de mascotas
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   └── urls.py
-└── db.sqlite3               # Base de datos SQLite por defecto
