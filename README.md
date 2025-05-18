@@ -1,13 +1,11 @@
-# Arnés Inteligente para Mascotas 🐾
+# PetCare App
 
-Proyecto académico para monitoreo de salud en mascotas usando ESP32, Django y React.js
+# Introducción
 
-## 🧩 Tecnologías Usadas
+PetCare es una aplicación empresarial diseñada para dueños de mascotas que desean monitorear la salud y el bienestar de sus animales a través de un arnés inteligente. La plataforma permite gestionar múltiples mascotas, visualizar datos biométricos, configurar conexiones Wi-Fi, recibir notificaciones de batería baja, generar informes en PDF y más.
 
-- Backend: Python + Django + DRF + PostgreSQL
-- Frontend: React.js
-- IoT: ESP32, MQTT
-- Pruebas: Locust, unittest
-- Despliegue: Oracle Cloud / Docker
+# Tecnologías
 
-## 📦 Estructura del Proyecto
+Backend: Django (Python) para una API robusta y segura.
+Frontend Web: React.js para una interfaz de usuario dinámica y responsiva.
+App Móvil: Kotlin con Jetpack Compose para una experiencia nativa en Android.
