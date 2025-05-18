@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-(*-b0s9@o*d3asv!1lp_^9ocd17l1h68&f!0rs3fa&4xt03fbb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'users',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -68,6 +69,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'arnes_api.wsgi.application'
 
+# Custom Authentication User Model
+AUTH_USER_MODEL = 'users.CustomUser' 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
