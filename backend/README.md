@@ -2,7 +2,7 @@
 
 Backend desarrollado en **Django + Django REST Framework (DRF)** para el proyecto académico **Arnés Inteligente para Mascotas**.
 
-Este backend ofrece funcionalidades de registro, inicio de sesión y generación de tokens para autenticación segura desde una aplicación móvil.
+Este backend ofrece funcionalidades de registro y autenticación de usuarios, con generación de tokens para acceso seguro desde una aplicación móvil.
 
 ---
 
@@ -13,6 +13,8 @@ Este backend ofrece funcionalidades de registro, inicio de sesión y generación
 - **Django REST Framework**
 - **Token Authentication**
 - **SQLite**
+
+---
 
 ## 🚀 Endpoints Disponibles
 
@@ -29,7 +31,6 @@ Este backend ofrece funcionalidades de registro, inicio de sesión y generación
   - `city`
 
 #### Ejemplo de solicitud:
-json
 {
   "email": "juan@api.com",
   "first_name": "Juan",
@@ -38,26 +39,25 @@ json
   "city": "Lima",
   "password": "mipassword123"
 }
+#### Respuesta exitosa:
+{
+  "message": "Usuario creado exitosamente"
+}
 
-### 1. Registro de Usuario
-
-- **URL:** `POST /api/auth/register/`
+#### 2. Inicio de Sesión
+- **URL:** `POST /api/auth/login/`
 - **Datos requeridos:**
-  - `email` (único)
-  - `first_name`
+  - `email`
   - `password`
-- **Opcionales:**
-  - `last_name`
-  - `phone`
-  - `city`
-
 #### Ejemplo de solicitud:
-json
 {
   "email": "juan@api.com",
-  "first_name": "Juan",
-  "last_name": "Pérez",
-  "phone": "+51999999999",
-  "city": "Lima",
   "password": "mipassword123"
+}
+#### Respuesta exitosa:
+{
+  "message": "Inicio de sesión exitoso",
+  "token": "9876543210abcdef1234567890abcdef12345678",
+  "user_email": "juan@api.com",
+  "user_id": 1
 }
