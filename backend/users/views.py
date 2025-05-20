@@ -36,24 +36,27 @@ class LoginAPIView(APIView):
     """
     Vista para autenticar usuarios.
 
-    Valida las credenciales del usuario y devuelve una respuesta simple.
-    En versiones futuras puede devolver un token JWT o Token Auth.
+    Valida las credenciales del usuario y devuelve un token.
     """
 
     def post(self, request):
         """
-        Autentica al usuario mediante correo y contraseña.
+        Autentica al usuario y devuelve un token.
 
         Args:
             request (Request): Datos de entrada del cliente.
 
         Returns:
-            Response: Respuesta HTTP con mensaje de éxito o errores.
+            Response: Respuesta HTTP con token o errores.
         """
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            return Response(
-                {"message": "Inicio de sesión exitoso"},
-                status=status.HTTP_200_OK
-            )
+            user = serializer.validated_data['user']
+            token = serializer.validated_data['token']
+            return Response({
+                "message": "Inicio de sesión exitoso",
+                "token": token,
+                "user_email": user.email,
+                "user_id": user.id
+            }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

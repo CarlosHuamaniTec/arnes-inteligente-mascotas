@@ -1,31 +1,63 @@
-# Arnés Inteligente para Mascotas 🐾
+# Arnés Inteligente para Mascotas - Backend 🐾
 
-Backend de la aplicación móvil "Arnés Inteligente para Mascotas", desarrollado en Django.
+Backend desarrollado en **Django + Django REST Framework (DRF)** para el proyecto académico **Arnés Inteligente para Mascotas**.
 
-## 📌 Funcionalidades actuales
+Este backend ofrece funcionalidades de registro, inicio de sesión y generación de tokens para autenticación segura desde una aplicación móvil.
 
-- Registro de usuarios
-- Inicio de sesión con token
-- Confirmación de correo (próximamente)
-- Recuperación de contraseña (próximamente)
+---
 
-## 🚀 Tecnologías usadas
+## 🧱 Tecnologías usadas
 
-- Python 3.x
-- Django 4.x
-- Django REST Framework
-- Token Authentication
+- **Python 3.13.0**
+- **Django 5.2.1**
+- **Django REST Framework**
+- **Token Authentication**
+- **SQLite**
 
-## 🔧 Requisitos
+## 🚀 Endpoints Disponibles
 
-- Python 3.x
-- pipenv o virtualenv (opcional pero recomendado)
+### 1. Registro de Usuario
 
-## 📦 Instalación
+- **URL:** `POST /api/auth/register/`
+- **Datos requeridos:**
+  - `email` (único)
+  - `first_name`
+  - `password`
+- **Opcionales:**
+  - `last_name`
+  - `phone`
+  - `city`
 
-```bash
-git clone https://github.com/CarlosHuamaniTec/arnes-inteligente-mascotas.git 
-cd arnes-inteligente-mascotas/backend
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+#### Ejemplo de solicitud:
+json
+{
+  "email": "juan@api.com",
+  "first_name": "Juan",
+  "last_name": "Pérez",
+  "phone": "+51999999999",
+  "city": "Lima",
+  "password": "mipassword123"
+}
+
+### 1. Registro de Usuario
+
+- **URL:** `POST /api/auth/register/`
+- **Datos requeridos:**
+  - `email` (único)
+  - `first_name`
+  - `password`
+- **Opcionales:**
+  - `last_name`
+  - `phone`
+  - `city`
+
+#### Ejemplo de solicitud:
+json
+{
+  "email": "juan@api.com",
+  "first_name": "Juan",
+  "last_name": "Pérez",
+  "phone": "+51999999999",
+  "city": "Lima",
+  "password": "mipassword123"
+}

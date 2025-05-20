@@ -1,6 +1,9 @@
 from django.test import TestCase
 from users.serializers import RegisterSerializer
+from users.serializers import LoginSerializer
 from users.models import CustomUser
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 
 
 class RegisterSerializerTest(TestCase):
@@ -86,3 +89,61 @@ class RegisterSerializerTest(TestCase):
         )
         serializer = RegisterSerializer(user)
         self.assertNotIn("password", serializer.data)
+
+class LoginSerializerCFGTest(TestCase):
+    def setUp(self):
+        self.user_data = {
+            "email": "test@example.com",
+            "first_name": "Test",
+            "password": "correctpassword"
+        }
+        self.user = CustomUser.objects.create_user(**self.user_data)
+        self.serializer = LoginSerializer()
+
+    def test_ruta_principal_usuario_valido_activo(self):
+        """Verifica validación exitosa con usuario válido, contraseña correcta y activo"""
+        data = {
+            "email": self.user_data["email"],
+            "password": self.user_data["password"]
+        }
+        validated_data = self.serializer.validate(data)
+
+        self.assertIn("user", validated_data)
+        self.assertIn("token", validated_data)
+        self.assertEqual(validated_data["user"].email, self.user.email)
+
+        token = Token.objects.get(user=self.user)
+        self.assertEqual(validated_data["token"], token.key)
+
+    def test_usuario_no_existe(self):
+        """Verifica error cuando el correo no corresponde a ningún usuario"""
+        data = {
+            "email": "invalid@example.com",
+            "password": "any_password"
+        }
+        with self.assertRaises(serializers.ValidationError) as context:
+            self.serializer.validate(data)
+        self.assertEqual(context.exception.detail[0], "Usuario no encontrado.")
+
+    def test_contrasena_incorrecta(self):
+        """Verifica error cuando la contraseña es incorrecta"""
+        data = {
+            "email": self.user_data["email"],
+            "password": "wrongpassword"
+        }
+        with self.assertRaises(serializers.ValidationError) as context:
+            self.serializer.validate(data)
+        self.assertEqual(context.exception.detail[0], "Contraseña incorrecta.")
+
+    def test_usuario_inactivo(self):
+        """Verifica error cuando el usuario está inactivo"""
+        self.user.is_active = False
+        self.user.save()
+
+        data = {
+            "email": self.user_data["email"],
+            "password": self.user_data["password"]
+        }
+        with self.assertRaises(serializers.ValidationError) as context:
+            self.serializer.validate(data)
+        self.assertEqual(context.exception.detail[0], "Usuario inactivo.")

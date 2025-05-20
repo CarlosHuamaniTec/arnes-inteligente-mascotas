@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from users.models import CustomUser
-
+from rest_framework.authtoken.models import Token
 
 class RegisterSerializer(serializers.ModelSerializer):
     """
@@ -108,4 +108,10 @@ class LoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise serializers.ValidationError("Usuario inactivo.")
 
-        return data
+        # Crear o recuperar token
+        token, created = Token.objects.get_or_create(user=user)
+
+        return {
+            'user': user,
+            'token': token.key
+        }

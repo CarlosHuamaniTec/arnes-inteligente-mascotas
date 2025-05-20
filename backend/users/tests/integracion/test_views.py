@@ -76,6 +76,9 @@ class UserLoginAPITest(TestCase):
         response = self.client.post(self.login_url, payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], "Inicio de sesión exitoso")
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data['user_email'], self.user.email)
+        self.assertEqual(response.data['user_id'], self.user.id)
 
     def test_login_con_correo_incorrecto(self):
         """Verifica que se lance un error si el correo es inválido"""
