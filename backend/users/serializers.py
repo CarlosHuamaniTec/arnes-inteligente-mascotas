@@ -10,13 +10,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     Este serializador permite crear usuarios con correo electrónico único, nombre obligatorio,
     y campos adicionales opcionales como apellido, teléfono y ciudad. Incluye validación de correo duplicado
     y genera un usuario inactivo hasta que confirme su correo.
-    
+
     Flujo de Control:
         [Inicio]
            ↓
         validar_email() → email válido y no registrado
            ↓
          create() → crea usuario con is_active=False e is_verified=False
+           ↓
+                → enviar_correo_confirmacion()
            ↓
         [Fin] Devuelve usuario creado
     
@@ -41,56 +43,39 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
-        """
-        Valida que el correo no esté ya registrado.
-
-        Args:
-            value (str): Correo proporcionado por el usuario
-            
-        Ruta del CFG probada:
-            [Entrada] → ¿Existe el correo? → Sí → Levantar error
-                                           ↘ No → Salida: correo válido
-        
-        Raises:
-            serializers.ValidationError: Si el correo ya está en uso.
-
-        Returns:
-            str: El correo validado
-        """
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("Este correo ya está registrado.")
         return value
 
     def create(self, validated_data):
         """
-        Crea un nuevo usuario con los datos validados.
-
-        Args:
-            validated_data (dict): Datos validados por el serializador.
-
+        Crea un nuevo usuario con los datos validados y envía correo de confirmación
+        
         Flujo de control:
             [Entrada]
                ↓
-            Se eliminan los campos relacionados al token (si existen)
+            Generar verification_token
                ↓
-            Se genera un verification_token único
+            Crear usuario con is_active=False
                ↓
-            Se crea el usuario con is_active=False e is_verified=False
+            Enviar correo de confirmación
                ↓
-            Se retorna el usuario creado
-
-        Returns:
-            CustomUser: Usuario creado con estado inactivo y token de verificación
+            Retornar usuario creado
         """
-        # Extraer datos sensibles
+        # Limpiar token si viene (no debería)
         validated_data.pop('verification_token', None)
 
         # Generar token único
         from django.utils.crypto import get_random_string
         token = get_random_string(40)
 
-        # Crear usuario con is_active=False
+        # Crear usuario inactivo
         user = CustomUser.objects.create_user(**validated_data, verification_token=token, is_active=False)
+
+        # Envío de correo desde el serializer
+        from users.utils.email import enviar_correo_confirmacion
+        enviar_correo_confirmacion(user.email, token)
+
         return user
 
 

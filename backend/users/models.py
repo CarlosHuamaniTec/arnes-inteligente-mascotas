@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+import secrets
 
 
 class CustomUserManager(BaseUserManager):
@@ -21,6 +22,7 @@ class CustomUserManager(BaseUserManager):
         Flujo de control:
             - Verifica que se proporcione correo y nombre
             - Normaliza el correo (lowercase)
+            - Genera el token de autenticación
             - Encripta la contraseña
             - Guarda el usuario en la base de datos
             
@@ -43,6 +45,10 @@ class CustomUserManager(BaseUserManager):
         
         email = self.normalize_email(email)
         user = self.model(email=email, first_name=first_name, **extra_fields)
+        
+        if not getattr(user, 'verification_token', None):
+            user.verification_token = secrets.token_urlsafe(40)
+        
         user.set_password(password)
         user.save(using=self._db)
         return user

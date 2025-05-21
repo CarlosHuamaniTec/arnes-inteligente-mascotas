@@ -3,6 +3,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import RegisterSerializer, LoginSerializer
 from users.models import CustomUser
+from django.shortcuts import render
+from django.views import View
+from rest_framework.authtoken.models import Token
+from users.models import CustomUser
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 
 
 class RegisterAPIView(APIView):
@@ -158,8 +164,28 @@ class VerifyEmailView(APIView):
         user.verification_token = None
         user.save()
 
-        return Response(
-            "<h1>Correo Confirmado</h1><p>Ahora puedes iniciar sesión.</p>",
-            status=status.HTTP_200_OK,
-            content_type="text/html"
-        )
+        # Mostrar página HTML simple
+        html_content = """
+        <html>
+        <head><title>Correo Verificado</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 40px;">
+            <h1 style="color: green;">✅ Correo verificado exitosamente</h1>
+            <p>Ahora puedes iniciar sesión desde tu aplicación móvil.</p>
+            <br>
+            <a href="#" onclick="window.close()" style="text-decoration: none; color: #007bff;">Cerrar ventana</a>
+        </body>
+        </html>
+        """
+        return HttpResponse(html_content)
+
+    def _render_error(self, message):
+        return HttpResponse(f"""
+        <html>
+        <body style="font-family: Arial; text-align: center; padding: 40px;">
+            <h1 style="color: red;">❌ Error</h1>
+            <p>{message}</p>
+            <br>
+            <a href="#" onclick="window.close()" style="text-decoration: none; color: #007bff;">Volver</a>
+        </body>
+        </html>
+        """, status=400)

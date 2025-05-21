@@ -59,7 +59,7 @@ ROOT_URLCONF = 'arnes_api.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "users" / "templates"], # Content Added
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,13 +129,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Almacenar los correos en memoria durante las pruebas unitarias
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS =True
 DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER')
-
-# View
-FRONTEND_VERIFY_URL = config('FRONTEND_VERIFY_URL', default='https://tuapp.com/api/auth/verify-email/ ')
+# EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
