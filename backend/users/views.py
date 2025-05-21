@@ -1,84 +1,61 @@
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
-from users.serializers import RegisterSerializer, LoginSerializer
-from users.models import CustomUser
-from django.http import HttpResponse
-
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import RegisterSerializer
+from .serializers import LoginSerializer
+from .serializers import PasswordResetRequestSerializer
+from .models import CustomUser
 
 class RegisterAPIView(APIView):
-    """Registra nuevos usuarios."""
-
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"message": "Usuario creado exitosamente"},
-                status=status.HTTP_201_CREATED
-            )
+            user = serializer.save()
+            return Response({"message": "Usuario registrado. Revisa tu correo para verificar."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
 
 class LoginAPIView(APIView):
-    """Autentica usuario y devuelve token."""
-
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token = serializer.validated_data['token']
-            return Response({
-                "message": "Inicio de sesión exitoso",
-                "token": token,
-                "user": {
-                    "id": user.id,
-                    "email": user.email
-                }
-            }, status=status.HTTP_200_OK)
+            return Response(serializer.validated_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import LoginSerializer
+
+class LoginAPIView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(serializer.validated_data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class VerifyEmailView(APIView):
-    """Activa cuenta mediante token enviado por correo."""
-
     def get(self, request):
-        token = request.query_params.get('token')
-
+        token = request.GET.get('token')
         if not token:
-            return self._render_error("No se proporcionó un token.")
-
+            return Response({"error": "No se proporcionó un token."}, status=400)
         try:
             user = CustomUser.objects.get(verification_token=token)
+            user.is_verified = True
+            user.is_active = True
+            user.verification_token = None
+            user.save()
+            return Response({"message": "Correo verificado exitosamente"})
         except CustomUser.DoesNotExist:
-            return self._render_error("Token inválido o expirado.")
+            return Response({"error": "Token inválido o expirado."}, status=400)
+        
 
-        user.is_active = True
-        user.is_verified = True
-        user.verification_token = None
-        user.save()
-
-        return HttpResponse("""
-        <html>
-        <head><title>Correo Verificado</title></head>
-        <body style="font-family: Arial; text-align: center; padding: 40px;">
-            <h1 style="color: green;">✅ Correo verificado exitosamente</h1>
-            <p>Ahora puedes iniciar sesión desde tu aplicación móvil.</p>
-            <br>
-            <a href="#" onclick="window.close()" style="text-decoration: none; color: #007bff;">Cerrar ventana</a>
-        </body>
-        </html>
-        """)
-
-    def _render_error(self, message):
-        return HttpResponse(f"""
-        <html>
-        <body style="font-family: Arial; text-align: center; padding: 40px;">
-            <h1 style="color: red;">❌ Error</h1>
-            <p>{message}</p>
-            <br>
-            <a href="#" onclick="window.close()" style="text-decoration: none; color: #007bff;">Volver</a>
-        </body>
-        </html>
-        """, status=400)
+class PasswordResetRequestView(APIView):
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Correo de restablecimiento enviado."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

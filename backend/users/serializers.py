@@ -1,4 +1,3 @@
-# users/serializers.py
 from rest_framework import serializers
 from users.models import CustomUser
 from django.utils.crypto import get_random_string
@@ -29,7 +28,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
-        """Valida que el email no esté registrado y lo normaliza."""
+        """Valida que el email no esté registrado."""
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("Ya existe usuario con este email.")
         return value.lower().strip()
@@ -46,7 +45,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         token = get_random_string(40)
         user = CustomUser.objects.create_user(
             email=validated_data['email'],
-            username=validated_data.get('username'),  # Will be auto-generated if None
+            username=validated_data.get('username'),  # Auto-generado si no se proporciona
             first_name=validated_data['first_name'],
             password=validated_data['password'],
             last_name=validated_data.get('last_name'),
@@ -61,7 +60,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     """
-    Autentica usuario con email y contraseña, y devuelve un token y detalles del usuario.
+    Autentica usuario con email y contraseña, y devuelve un token y detalles.
     """
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
