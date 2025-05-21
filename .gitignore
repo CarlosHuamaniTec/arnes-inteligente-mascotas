@@ -1,29 +1,138 @@
 # Python
 __pycache__
 *.pyc
-*.db
+*.pyo
+*.pyd
+*.log
+*.pot
+*.mo
+*.po
+build/
+dist/
+eggs/
+*.egg-info/
+*.so
+
+# Entornos virtuales
 env/
 venv/
-*.log
+virtualenv/
+.env
+.env.local
+.env.development
+.env.test
 
-# Node
+# Django
+*.sqlite3
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Django
-*.sqlite3
-local_settings.py
+# App Móvil - Android
+/mobile/app/google-services.json
+/mobile/app/firebase-adminsdk.json
+/build/
+.gradle/
+/local.properties
+/.cxx/
+/.idea/
+*.iml
+captures/
+externalNativeBuild/
 
-# IDEs
+# App Móvil - Kotlin / Jetpack Compose
+*.kotlin_metadata
+*.lock
+
+# Spring Boot (servicio de IA)
+/target/
+!.gitkeep  # Opcional: si quieres mantener la carpeta vacía pero versionada
+
+# Logs
+*.log
+logs/
+log/
+
+# Redis / Celery / MQTT
+redis_data/
+celery_logs/
+mqtt_data/
+
+# Editor files
+.*.swp
+.*.swo
+*~
+
+# Docs / Markdown
+*.md~
+*.bak
+
+# Sistemas de build / compilación
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+
+# Configuraciones locales de desarrollo
 .vscode/
 .idea/
-*.swp
-*.swo
+*.sublime-project
+*.sublime-workspace
 
-# Docs
-*.md~
+# Archivos temporales
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
 
-#Json
-mobile/app/google-services.json
+# Configuraciones sensibles
+*.key
+*.pem
+*.crt
+*.csr
+*.der
+*.pfx
+*.jks
+*.keystore
+*.truststore
+*.p12
+
+# FRP (Forward Proxy)
+frpc.ini
+frps.ini
+
+# Docker
+*.DS_Store
+.dockerenv
+**/__pycache__/
+**/*.pyc
+**/env/
+**/venv/
+**/.env
+**/.venv
+**/build/
+
+# CI/CD
+*.yml
+*.yaml
+*.sh
+*.bat
+
+# Sistemas operativos
+.AppleDouble
+.LSOverride
+Icon?
+.eaDir
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+._*
