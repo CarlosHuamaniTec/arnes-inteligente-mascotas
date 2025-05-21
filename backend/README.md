@@ -71,15 +71,15 @@ backend/
 3. **Configura las variables de entorno**:
    - Crea un archivo `.env` en `backend/` con el siguiente contenido:
      ```
-     EMAIL_HOST_USER=vitalpaw.devtester007@gmail.com
-     EMAIL_HOST_PASSWORD=uwbx muuv ywdn qzwt
-     DEFAULT_FROM_EMAIL=vitalpaw.devtester007@gmail.com
-     SECRET_KEY=django-insecure-(*-b0s9@o*d3asv!1lp_^9ocd17l1h68&f!0rs3fa&4xt03fbb
+     EMAIL_HOST_USER=
+     EMAIL_HOST_PASSWORD=
+     DEFAULT_FROM_EMAIL=
+     SECRET_KEY=
      DEBUG=True
-     ALLOWED_HOSTS=127.0.0.1,localhost
-     USE_POSTGRES=False
-     REDIS_URL=redis://localhost:6379/0
-     FRONTEND_VERIFY_URL=http://localhost:8000/verify-email/
+     ALLOWED_HOSTS=
+     USE_POSTGRES=
+     REDIS_URL=
+     FRONTEND_VERIFY_URL=
      ```
    - Asegúrate de que `EMAIL_HOST_PASSWORD` sea una contraseña de aplicación de Gmail.
 
