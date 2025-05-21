@@ -1,18 +1,17 @@
-import firebase_admin
-import os
-import json
+# pets/tasks.py
 from celery import shared_task
 from pets.models import Pet, BreedThresholds
 from django_redis import get_redis_connection
-from .models import CustomUser
-from firebase_admin import messaging, credentials
+import json
+from firebase_admin import messaging, credentials, initialize_app
 from django.conf import settings
-
-
+import os
+from .models import CustomUser
 
 # Inicializar Firebase
-cred = credentials.Certificate(os.path.join(settings.BASE_DIR, 'firebase-adminsdk.json'))
-firebase_admin.initialize_app(cred)
+if not hasattr(settings, 'FIREBASE_APP'):
+    cred = credentials.Certificate(os.path.join(settings.BASE_DIR, 'firebase-adminsdk.json'))
+    settings.FIREBASE_APP = initialize_app(cred)
 
 @shared_task
 def process_biometric_data(pet_id, data):
@@ -27,7 +26,6 @@ def process_biometric_data(pet_id, data):
         # Obtener umbrales por raza
         thresholds = BreedThresholds.objects.filter(breed=pet.breed).first()
         if not thresholds:
-            # Umbrales por defecto si no hay específicos
             thresholds = type('Thresholds', (), {
                 'min_heart_rate': 60,
                 'max_heart_rate': 120,
@@ -51,13 +49,12 @@ def process_biometric_data(pet_id, data):
         prev_y = redis_conn.get(f"movement_y:{pet_id}")
         if prev_y:
             prev_y = float(prev_y)
-            if abs(movement_y - prev_y) > 10.0:  # Umbral de caída (ajustar)
+            if abs(movement_y - prev_y) > 10.0:  # Umbral de caída
                 alerts.append("Caída detectada")
 
-        # Detectar letargo (movimiento bajo en todos los ejes)
+        # Detectar letargo (movimiento bajo)
         total_movement = abs(movement_x) + abs(movement_y) + abs(movement_z)
-        if total_movement < 0.1:  # Umbral de letargo (ajustar)
-            # Verificar duración para evitar falsos positivos (e.g., durmiendo)
+        if total_movement < 0.1:  # Umbral de letargo
             count = redis_conn.incr(f"low_movement_count:{pet_id}")
             if count >= 30:  # 3 segundos a 0.1s por mensaje
                 alerts.append("Letargo detectado")
@@ -65,7 +62,7 @@ def process_biometric_data(pet_id, data):
         else:
             redis_conn.delete(f"low_movement_count:{pet_id}")
 
-        # Guardar datos en Redis para consulta
+        # Guardar datos en Redis
         biometric_data = {
             'pet_id': pet_id,
             'heart_rate': heart_rate,
@@ -75,16 +72,15 @@ def process_biometric_data(pet_id, data):
             'movement_z': movement_z,
             'alerts': alerts
         }
-        redis_conn.set(f"biometric:{pet_id}", json.dumps(biometric_data), ex=60)  # Expira en 60s
+        redis_conn.set(f"biometric:{pet_id}", json.dumps(biometric_data), ex=60)
         redis_conn.set(f"movement_y:{pet_id}", movement_y, ex=60)
 
         # Enviar notificaciones push si hay alertas
         if alerts:
             send_push_notification.delay(pet.owner.id, alerts)
 
-        # Enviar datos a la API Gateway (placeholder)
-        # Aquí iría una llamada HTTP a la API Gateway en AWS EC2
-        print(f"Enviando datos a API Gateway: {biometric_data}")
+        # Enviar datos a la API Gateway
+        send_to_api_gateway(biometric_data)
 
         return {"status": "success", "pet_id": pet_id}
     except Pet.DoesNotExist:
@@ -94,14 +90,25 @@ def process_biometric_data(pet_id, data):
 def send_push_notification(user_id, alerts):
     try:
         user = CustomUser.objects.get(id=user_id)
-        # Asumimos que el usuario tiene un device_token (añadir al modelo si necesario)
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title="Alerta de salud",
-                body=", ".join(alerts)
-            ),
-            token=user.device_token  # Placeholder
-        )
-        messaging.send(message)
+        if hasattr(user, 'device_token') and user.device_token:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Alerta de salud",
+                    body=", ".join(alerts)
+                ),
+                token=user.device_token
+            )
+            messaging.send(message)
+        else:
+            print(f"Usuario {user.email} no tiene device_token")
     except Exception as e:
         print(f"Error enviando notificación: {e}")
+
+def send_to_api_gateway(biometric_data):
+    import requests
+    gateway_url = "https://<tu-api-gateway-url>/biometrics"  # Reemplaza con tu URL
+    try:
+        response = requests.post(gateway_url, json=biometric_data, timeout=5)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error enviando a API Gateway: {e}")
