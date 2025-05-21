@@ -1,3 +1,7 @@
+# Firebase
+google-services.json
+firebase-adminsdk.json
+
 # Python
 __pycache__
 *.pyc
@@ -6,6 +10,15 @@ env/
 venv/
 *.log
 .env
+
+# Archivos de compilación de Android
+android/app/build/
+android/.gradle/
+android/.idea/
+*.iml
+
+# Archivos sensibles del backend
+backend/*.sqlite3
 
 # Node
 node_modules/
