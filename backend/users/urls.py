@@ -1,3 +1,5 @@
+# backend/users/urls.py
+
 from django.urls import path
 from users.views import RegisterAPIView, LoginAPIView, VerifyEmailView
 
