@@ -5,6 +5,7 @@ from rest_framework.test import APIRequestFactory, APIClient
 from rest_framework import status
 from users.views import RegisterAPIView
 from users.models import CustomUser
+from rest_framework.test import APIClient
 
 
 class RegisterAPIViewCFGTest(TestCase):
@@ -178,15 +179,15 @@ class RegisterAPIViewCFGTest(TestCase):
         Cobertura:
         - Camino básico con seguridad
         """
-        request_data = {
+        data = {
             "email": "secure@example.com",
             "first_name": "Secure",
             "password": "pass1234"
         }
 
         view = RegisterAPIView.as_view()
-        request = self.factory.post("/api/auth/register/", request_data, format="json")
-        response = view(request)
+        client = APIClient()
+        response = client.post("/api/auth/register/", data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertNotIn("password", response.data)

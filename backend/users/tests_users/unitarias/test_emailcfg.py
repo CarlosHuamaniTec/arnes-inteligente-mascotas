@@ -3,6 +3,7 @@
 from django.test import TestCase
 from unittest.mock import patch
 from users.utils.email import enviar_correo_confirmacion
+from django.utils.html import strip_tags
 
 
 class EmailTestCFG(TestCase):

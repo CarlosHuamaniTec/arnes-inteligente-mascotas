@@ -1,10 +1,9 @@
-# users/tests_users/unitarias/LoginSerializerTestCFG.py
-
 from django.test import TestCase
 from rest_framework import serializers
 from users.serializers import LoginSerializer
 from users.models import CustomUser
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 
 
 class LoginSerializerCFGTest(TestCase):
