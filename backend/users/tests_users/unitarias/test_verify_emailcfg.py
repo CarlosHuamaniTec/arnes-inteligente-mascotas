@@ -1,67 +1,57 @@
-# users/tests_users/unitarias/VerifyEmailViewTestCFG.py
+# backend/users/tests_user/unitarias/test_verify_emailcfg.py
 
-from django.test import TestCase
-from rest_framework.test import APIRequestFactory, APIClient
-from rest_framework import status
+from django.test import TestCase, RequestFactory
+from django.http import HttpResponse
 from users.views import VerifyEmailView
 from users.models import CustomUser
 
 
 class VerifyEmailViewCFGTest(TestCase):
-    """
-    Prueba unitaria de caja blanca para VerifyEmailView.
-    
-    Flujo de Control del método GET:
-    
-        [Entrada]
-           ↓
-        ¿Token presente? → No → Devolver error HTML
-                            ↘ Sí → Buscar usuario
-                                        ↘ Encontrado → Activar cuenta
-                                                        ↓
-                                                      Limpiar token
-                                                        ↓
-                                                    Guardar cambios
-                                                        ↓
-                                                  Devolver éxito HTML
-                                                   ↗ No encontrado → Error HTML
-        
-    Aplica los siguientes criterios de cobertura:
-        - Cobertura de instrucciones/nodos
-        - Cobertura de condiciones/decisiones
-        - Cobertura de ruta completa
-    """
-
     def setUp(self):
-        self.factory = APIRequestFactory()
-        self.client = APIClient()
+        self.factory = RequestFactory()
+        self.view = VerifyEmailView.as_view()
 
-        # Datos de usuario de prueba
-        self.user_data = {
-            "email": "verify@example.com",
-            "first_name": "Verify",
-            "password": "pass1234"
-        }
+        # Crear usuario de prueba con token de verificación
+        self.user = CustomUser.objects.create(
+            email="test@example.com",
+            first_name="Test",
+            is_active=False,
+            is_verified=False,
+            verification_token="validtoken123"
+        )
+        self.user.set_password("password")
+        self.user.save()
 
-        # Crear usuario con token de verificación
-        self.user = CustomUser.objects.create_user(**self.user_data, is_active=False)
-        self.verification_token = self.user.verification_token
-
-    def test_verificar_correo_con_token_valido(self):
+    def test_get_no_token_provided(self):
         """
-        [Caja Blanca - CFG] Camino principal completo
-        
-        Camino:
-        token != None → Usuario encontrado → Cuenta activada → Token limpiado
-            
-        Cobertura:
-        - Todos los nodos ejecutados
-        - Condición 1: token válido → éxito
+        Caso sin token: debe retornar error con status 400.
         """
-        url = f"/api/auth/verify-email/?token={self.verification_token}"
-        request = self.factory.get(url)
-        view = VerifyEmailView.as_view()
-        response = view(request)
+        request = self.factory.get('/verify-email/')
+        response = self.view(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"No se proporcion\xF3 un token.", response.content)
 
-        # Verificar respuesta HTTP
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_token_invalid(self):
+        """
+        Token inválido → error 400.
+        """
+        request = self.factory.get('/verify-email/', {'token': 'invalidtoken'})
+        response = self.view(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"Token inv\xE1lido o expirado.", response.content)
+
+    def test_get_token_valid(self):
+        """
+        Token válido → activa usuario, elimina token, status 200 y mensaje éxito.
+        """
+        request = self.factory.get('/verify-email/', {'token': 'validtoken123'})
+        response = self.view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.user.is_verified)
+        self.assertIsNone(self.user.verification_token)
+
+        self.assertIn(b"Correo verificado exitosamente", response.content)
+        self.assertIn(b"Ahora puedes iniciar sesi\xF3n", response.content)

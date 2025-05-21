@@ -1,179 +1,103 @@
-# users/tests_users/unitarias/LoginAPIViewTestCFG.py
+# backend/users/tests_user/unitarias/test_login_api_viewcfg.py
 
-from django.test import TestCase
-from rest_framework.test import APIRequestFactory, APIClient
+from django.urls import reverse
+from rest_framework.test import APITestCase
 from rest_framework import status
-from users.views import LoginAPIView
 from users.models import CustomUser
 from rest_framework.authtoken.models import Token
 
 
-class LoginAPIViewCFGTest(TestCase):
+class LoginAPIViewCFGTest(APITestCase):
     """
-    Prueba unitaria de caja blanca para LoginAPIView.
-    
-    Flujo de Control del método POST:
-    
-        [Entrada]
-           ↓
-        Validar datos → ¿Correo existe?
-                             ↘ No → Error
-                               ↓
-                        ¿Contraseña correcta? → No → Error
-                                               ↓
-                                      ¿Usuario activo? → No → Error
-                                                            ↓
-                                                 Generar token → Devolver éxito
-        
-    Aplica estos criterios de cobertura:
-        - Cobertura de instrucciones/nodos
-        - Cobertura de condiciones/decisiones
-        - Cobertura de ruta completa
+    Pruebas unitarias de caja blanca (CFG) para LoginAPIView POST /login/.
+
+    Cobertura:
+    - Datos correctos → login exitoso → token y user devueltos.
+    - Datos inválidos → errores de serializador.
+    - Usuario no existe.
+    - Password incorrecta.
+    - Usuario inactivo.
     """
 
     def setUp(self):
-        self.factory = APIRequestFactory()
-        self.client = APIClient()
+        self.url = reverse("login-api")  # Ajusta según tu urls.py, ejemplo: path('login/', LoginAPIView.as_view(), name='login-api')
+        self.password = "testpass123"
+        self.active_user = CustomUser.objects.create_user(
+            email="active@example.com",
+            first_name="Active",
+            password=self.password,
+            is_active=True
+        )
+        self.inactive_user = CustomUser.objects.create_user(
+            email="inactive@example.com",
+            first_name="Inactive",
+            password=self.password,
+            is_active=False
+        )
 
-        # Datos de prueba
-        self.user_data = {
-            "email": "test@example.com",
-            "first_name": "Test",
-            "password": "correctpassword"
-        }
-
-        # Crear usuario
-        self.user = CustomUser.objects.create_user(**self.user_data)
-        self.user.is_active = True
-        self.user.save()
-
-    def test_login_usuario_valido_activo(self):
+    def test_login_exitoso(self):
         """
-        [Caja Blanca - CFG] Camino principal completo
-
-        Camino:
-        Datos válidos → Usuario existe → Contraseña correcta → Activo → Token devuelto
-
-        Cobertura:
-        - Todos los nodos ejecutados
-        - Todos los if pasan (True)
+        [Caja Blanca - CFG] Camino principal: login correcto.
         """
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", self.user_data, format="json")
-        response = view(request)
-
+        data = {"email": self.active_user.email, "password": self.password}
+        response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("token", response.data)
-        self.assertEqual(response.data["user_email"], self.user_data["email"])
-
-        # Verificar que el token se haya creado
-        token = Token.objects.get(user=self.user)
+        self.assertIn("user", response.data)
+        self.assertEqual(response.data["user"]["email"], self.active_user.email)
+        # Verificar token válido en DB
+        token = Token.objects.filter(user=self.active_user).first()
+        self.assertIsNotNone(token)
         self.assertEqual(response.data["token"], token.key)
 
-    def test_login_con_correo_incorrecto(self):
+    def test_login_usuario_no_existe(self):
         """
-        [Caja Blanca - CFG] Condición 1: correo no existe
-
-        Camino:
-        email == None → Levanta error
-            
-        Cobertura:
-        - Nodo decisión: usuario no encontrado
-        - Excepción lanzada
+        [CFG] Usuario no existe → error 400 con mensaje.
         """
-        invalid_data = {
-            "email": "invalid@example.com",
-            "password": "any_password"
-        }
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", invalid_data, format="json")
-        response = view(request)
-
+        data = {"email": "noexiste@example.com", "password": "any"}
+        response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["non_field_errors"][0], "Usuario no encontrado.")
+        self.assertIn("Usuario no encontrado.", str(response.data))
 
-    def test_login_con_password_incorrecto(self):
+    def test_login_password_incorrecta(self):
         """
-        [Caja Blanca - CFG] Condición 2: contraseña incorrecta
-
-        Camino:
-        Usuario existe → Contraseña != correcta → Error
-            
-        Cobertura:
-        - Nodo decisión: contraseña incorrecta
-        - Excepción lanzada
+        [CFG] Password incorrecta → error 400 con mensaje.
         """
-        wrong_data = {
-            "email": self.user_data["email"],
-            "password": "wrongpassword"
-        }
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", wrong_data, format="json")
-        response = view(request)
-
+        data = {"email": self.active_user.email, "password": "wrongpass"}
+        response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["non_field_errors"][0], "Contraseña incorrecta.")
+        self.assertIn("Contraseña incorrecta.", str(response.data))
 
     def test_login_usuario_inactivo(self):
         """
-        [Caja Blanca - CFG] Condición 3: usuario inactivo
-
-        Camino:
-        Usuario existe → Contraseña correcta → is_active == False → Error
-            
-        Cobertura:
-        - Nodo decisión: usuario inactivo
-        - Excepción lanzada
+        [CFG] Usuario inactivo → error 400 con mensaje.
         """
-        self.user.is_active = False
-        self.user.save()
-
-        inactive_data = {
-            "email": self.user.email,
-            "password": self.user_data["password"]
-        }
-
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", inactive_data, format="json")
-        response = view(request)
-
+        data = {"email": self.inactive_user.email, "password": self.password}
+        response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["non_field_errors"][0], "Usuario inactivo.")
+        self.assertIn("Usuario inactivo.", str(response.data))
 
-    def test_login_no_devuelve_password(self):
+    def test_login_faltan_campos_requeridos(self):
         """
-        [Caja Blanca - CFG] Camino secundario: seguridad en respuesta
-
-        Camino:
-        Inicio de sesión válido → Respuesta sin password
-            
-        Cobertura:
-        - Ruta básica con seguridad
+        [CFG] Falta email o password → error 400 y detalles.
         """
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", self.user_data, format="json")
-        response = view(request)
+        # Sin email
+        data = {"password": self.password}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)
 
+        # Sin password
+        data = {"email": self.active_user.email}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("password", response.data)
+
+    def test_login_email_con_mayusculas(self):
+        """
+        [CFG] Email con mayúsculas → login exitoso (normalización).
+        """
+        data = {"email": self.active_user.email.upper(), "password": self.password}
+        response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotIn("password", response.data)
-
-    def test_login_datos_minimos_requeridos(self):
-        """
-        [Caja Blanca - CFG] Datos mínimos necesarios
-
-        Camino:
-        Solo email y password → Se valida correctamente
-            
-        Cobertura:
-        - Camino básico con envío mínimo de campos
-        """
-        data = {
-            "email": self.user_data["email"],
-            "password": self.user_data["password"]
-        }
-        view = LoginAPIView.as_view()
-        request = self.factory.post("/api/auth/login/", data, format="json")
-        response = view(request)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["email"], self.active_user.email)

@@ -9,14 +9,19 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
+import os
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
+# import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+DEBUG = config('DEBUG', default=False,cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 # Apps instaladas
 INSTALLED_APPS = [
@@ -66,11 +71,17 @@ WSGI_APPLICATION = 'arnes_api.wsgi.application'
 # Modelo de usuario personalizado
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# Base de datos (SQLite)
+# Base de datos
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql"
+        if config("USE_POSTGRES", default=False, cast=bool)
+        else "django.db.backends.sqlite3",
+        "NAME": config("DB_NAME", default=os.path.join(BASE_DIR, "db.sqlite3")),
+        "USER": config("DB_USER", default=""),
+        "PASSWORD": config("DB_PASSWORD", default=""),
+        "HOST": config("DB_HOST", default=""),
+        "PORT": config("DB_PORT", default=""),
     }
 }
 
@@ -93,11 +104,18 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuración de correo
-EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+# Email SMTP con Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Celery y Redis (para tareas asíncronas y MQTT)
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+
+# URL base para emails (confirmación, recuperación de contraseña)
+FRONTEND_VERIFY_URL = config('FRONTEND_VERIFY_URL', default='http://localhost:8000/verify-email/')
