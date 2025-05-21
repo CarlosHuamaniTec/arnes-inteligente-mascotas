@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirma tu correo electrónico</title>
+    <style>
+        /* Reset styles for email client compatibility */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7fa;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header img {
+            max-width: 150px;
+            height: auto;
+        }
+        .content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #1a3c6d;
+            font-size: 24px;
+            margin: 0 0 20px;
+        }
+        p {
+            color: #333333;
+            font-size: 16px;
+            margin: 0 0 20px;
+        }
+        .token {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        .cta-button:hover {
+            background: #218838;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            .header {
+                padding: 20px;
+            }
+            .content {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .token {
+                font-size: 16px;
+            }
+            .cta-button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img src="{% static 'emails/images/logo.png' %}" alt="Vital Paw Logo">
+    </div>
+    <div class="content">
+        <h1>¡Bienvenido a Vital Paw!</h1>
+        <p>Gracias por registrarte. Para completar tu registro, haz clic en el botón de abajo:</p>
+
+        <!-- Botón de confirmación con token -->
+        <a href="{{ confirmation_link }}" class="cta-button">Confirmar Correo</a>
+
+        <p>Si no te registraste, puedes ignorar este correo.</p>
+    </div>
+    <div class="footer">
+        &copy; 2025 Vital Paw. Todos los derechos reservados.<br>
+        <a href="#">Visita nuestro sitio</a> | 
+        <a href="mailto:vitalpaw.devtester007@gmail.com">Contáctanos</a><br>
+        Este es un mensaje automático, por favor no respondas directamente.
+    </div>
+</div>
+</body>
+</html>
