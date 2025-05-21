@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import json
 from pets.tasks import process_biometric_data
 
 def on_connect(client, userdata, flags, rc):

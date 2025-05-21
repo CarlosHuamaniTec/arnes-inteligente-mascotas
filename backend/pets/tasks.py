@@ -1,11 +1,14 @@
-# pets/tasks.py
+import firebase_admin
+import os
+import json
 from celery import shared_task
 from pets.models import Pet, BreedThresholds
 from django_redis import get_redis_connection
-import json
+from .models import CustomUser
 from firebase_admin import messaging, credentials
 from django.conf import settings
-import os
+
+
 
 # Inicializar Firebase
 cred = credentials.Certificate(os.path.join(settings.BASE_DIR, 'firebase-adminsdk.json'))
