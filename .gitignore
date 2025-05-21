@@ -24,3 +24,6 @@ local_settings.py
 
 # Docs
 *.md~
+
+#Json
+mobile/app/google-services.json
