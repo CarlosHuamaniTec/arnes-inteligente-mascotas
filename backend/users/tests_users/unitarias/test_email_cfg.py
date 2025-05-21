@@ -2,42 +2,50 @@ from django.test import TestCase
 from unittest.mock import patch
 from users.utils.email import enviar_correo_confirmacion
 
+
 class EmailSendControlFlowTest(TestCase):
 
     @patch('users.utils.email.send_mail')
     def test_envio_correo_con_datos_validos(self, mocked_send_mail):
         """
         [Caja Blanca - Flujo de Control] Cobertura de instrucciones y rutas
-
-        Ruta: Todos los pasos normales sin excepciones
-        Instrucciones cubiertas:
-            1. Definición de asunto
-            2. Generación de mensaje
-            3. Uso de DEFAULT_FROM_EMAIL
-            4. Envío de correo
+        
+        Camino:
+        Datos válidos → Se llama a send_mail() con parámetros correctos
+        
+        Cobertura:
+        - Inicio y fin del flujo
+        - Todos los nodos ejecutados
         """
 
+        # Simular datos reales
         destinatario = "usuario@example.com"
         token = "abc123"
 
-        # Act
+        # Llamada a la función
         enviar_correo_confirmacion(destinatario, token)
 
-        # Asserts
+        # Verificar que send_mail haya sido llamado
         self.assertTrue(mocked_send_mail.called)
+
+        # Obtener argumentos usados
         args, kwargs = mocked_send_mail.call_args
 
-        self.assertEqual(args[0], "Confirma tu correo electrónico")
-        self.assertIn(token, args[1])
-        self.assertEqual(args[3], [destinatario])
+        # Validar contenido usando kwargs en lugar de args
+        self.assertEqual(kwargs['subject'], "Confirma tu correo electrónico")
+        self.assertIn(token, kwargs['message'])
+        self.assertEqual(kwargs['recipient_list'], [destinatario])
 
     @patch('users.utils.email.send_mail', side_effect=Exception("Fallo de red"))
     def test_fallo_al_enviar_correo(self, mocked_send_mail):
         """
         [Caja Blanca - Flujo de Control] Manejo de fallos
-
-        Ruta: Excepción al llamar a send_mail()
-        Verifica que la función maneje correctamente un fallo en el envío.
+        
+        Camino:
+        Excepción al llamar a send_mail() → Levanta error
+        
+        Cobertura:
+        - Ruta alternativa con excepción
         """
 
         destinatario = "usuario@example.com"

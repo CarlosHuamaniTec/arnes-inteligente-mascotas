@@ -27,7 +27,7 @@ def enviar_correo_confirmacion(destinatario, token):
     {token}
 
     Atentamente,
-    Equipo de Arnés Inteligente
+    Equipo de Vital Paw
     """
     from_email = settings.DEFAULT_FROM_EMAIL
 
