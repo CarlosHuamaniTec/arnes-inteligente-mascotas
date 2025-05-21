@@ -1,7 +1,14 @@
 asgiref==3.8.1
+colorama==0.4.6
 coverage==7.8.0
 Django==5.2.1
+django-redis==5.4.0
 djangorestframework==3.16.0
+iniconfig==2.1.0
+packaging==25.0
+pluggy==1.6.0
+pytest==8.3.5
 python-decouple==3.8
+redis==6.1.0
 sqlparse==0.5.3
 tzdata==2025.2
