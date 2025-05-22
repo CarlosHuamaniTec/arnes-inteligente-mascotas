@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # 1. Spring Boot - Main Client (Core Logic)
+  springboot-mainclient:
+    build:
+      context: ./backend/springboot/mainclient
+      dockerfile: Dockerfile
+    container_name: vitalpaw-mainclient
+    expose:
+      - "8081"
+    depends_on:
+      - mosquitto
+      - redis
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/vitalpaw
+      SPRING_DATASOURCE_USERNAME: django
+      SPRING_DATASOURCE_PASSWORD: django
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      MQTT_BROKER: tcp://mosquitto:1883
+      MQTT_USERNAME: mqtt_user
+      MQTT_PASSWORD: mqtt_pass
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+    volumes:
+      - ./backend/springboot/mainclient/firebase-adminsdk.json:/app/firebase-adminsdk.json
+    labels:
+      - "traefik.http.routers.mainclient.rule=Host(`api.vitalpaw.com`)"
+      - "traefik.http.routers.mainclient.entrypoints=web"
+      - "traefik.http.routers.mainclient.tls=true"
+      - "traefik.http.routers.mainclient.tls.certresolver=myresolver"
+    restart: unless-stopped
+
+  # 2. Django - Monitor y Umbrales
+  django:
+    build:
+      context: ./backend/django
+      dockerfile: Dockerfile
+    container_name: vitalpaw-django
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - celery
+    environment:
+      DATABASE_URL: postgresql://django:django@db:5432/vitalpaw
+      REDIS_URL: redis://redis:6379/0
+    labels:
+      - "traefik.http.routers.django.rule=Host(`admin.vitalpaw.com`)"
+      - "traefik.http.routers.django.entrypoints=web"
+      - "traefik.http.routers.django.tls=true"
+      - "traefik.http.routers.django.tls.certresolver=myresolver"
+      - "traefik.http.routers.django.middlewares=ipwhitelist"
+      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=192.168.1.0/24"
+    restart: unless-stopped
+
+  # 3. Celery
+  celery:
+    build:
+      context: ./backend/celery
+      dockerfile: Dockerfile
+    container_name: vitalpaw-celery
+    depends_on:
+      - redis
+      - db
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://django:django@db:5432/vitalpaw
+    command: celery -A tasks worker --loglevel=info
+    restart: unless-stopped
+
+  # 4. Python IA Service
+  python-ai-service:
+    build:
+      context: ./backend/ai_service
+      dockerfile: Dockerfile
+    container_name: vitalpaw-python-ia
+    expose:
+      - "5000"
+    depends_on:
+      - db
+      - redis
+      - celery
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    restart: unless-stopped
+
+  # 5. PostgreSQL
+  db:
+    image: postgres:15
+    container_name: vitalpaw-db
+    environment:
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+      POSTGRES_DB: vitalpaw
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 6. Redis
+  redis:
+    image: redis:alpine
+    container_name: vitalpaw-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # 7. MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: vitalpaw-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+    command: ["mosquitto", "-c", "/mosquitto/config/mosquitto.conf"]
+    restart: unless-stopped
+
+  # 8. Frontend React Admin Panel
+  react-admin-panel:
+    build:
+      context: ./frontend/admin-panel
+      dockerfile: Dockerfile
+    container_name: vitalpaw-react
+    labels:
+      - "traefik.http.routers.react.rule=Host(`admin.vitalpaw.com`)"
+      - "traefik.http.routers.react.entrypoints=web"
+      - "traefik.http.routers.react.tls=true"
+      - "traefik.http.routers.react.tls.certresolver=myresolver"
+      - "traefik.http.routers.react.middlewares=ipwhitelist"
+      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=192.168.1.0/24"
+    depends_on:
+      - django
+    restart: unless-stopped
+
+  # 9. Traefik
+  traefik:
+    image: traefik:v2.9
+    container_name: vitalpaw-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+      - "--certificatesresolvers.myresolver.acme.email=admin@vitalpaw.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./letsencrypt:/letsencrypt
+    restart: unless-stopped
+
+  # 10. FRP Client
+  frpc:
+    image: snowdreamtech/frpc:0.51.0
+    container_name: vitalpaw-frpc
+    volumes:
+      - ./frpc.ini:/etc/frp/frpc.ini
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

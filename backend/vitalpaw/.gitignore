@@ -1,0 +1,41 @@
+# Archivos sensibles
+.env
+*.pem
+*.key
+*.crt
+firebase-adminsdk.json
+
+# Directorios de certificados SSL
+/letsencrypt/
+
+# Archivos generados por compilación
+/target/
+/build/
+/out/
+/dist/
+/*.class
+
+# Archivos de IDE
+.idea/
+*.iml
+.vscode/
+
+# Archivos de Docker
+*.log
+/docker-compose.override.yml
+
+# Archivos de caché y temporales
+*.swp
+*.swo
+*.bak
+*.tmp
+.DS_Store
+
+# Directorios de datos persistentes
+/mosquitto/data/
+/postgres_data/
+/redis_data/
+
+# Archivos de pruebas y cobertura
+/coverage/
+/test-reports/

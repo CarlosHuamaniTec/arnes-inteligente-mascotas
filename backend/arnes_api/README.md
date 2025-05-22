@@ -1,1 +1,0 @@
-### Subir firebase-adminsdk.json aquí
