@@ -2,7 +2,7 @@
 
 # Introducción
 
-PetCare es una aplicación empresarial diseñada para dueños de mascotas que desean monitorear la salud y el bienestar de sus animales a través de un arnés inteligente. La plataforma permite gestionar múltiples mascotas, visualizar datos biométricos, configurar conexiones Wi-Fi, recibir notificaciones de batería baja, generar informes en PDF y más.
+Vital Paw es una aplicación empresarial diseñada para dueños de mascotas que desean monitorear la salud y el bienestar de sus animales a través de un arnés inteligente. La plataforma permite gestionar múltiples mascotas, visualizar datos biométricos, configurar conexiones Wi-Fi, recibir notificaciones de batería baja, generar informes en PDF y más.
 
 # Tecnologías
 
