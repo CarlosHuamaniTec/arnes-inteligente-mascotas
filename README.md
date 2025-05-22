@@ -1,4 +1,4 @@
-# PetCare App
+# Vital Paw App
 
 # Introducción
 
